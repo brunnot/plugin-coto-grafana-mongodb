@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ENV=-none
-BACK_END=-none
 IMAGE_NAME="plugin-coto-rest-mongodb"
 
 CONTAINER_REPO="ghcr.io/brunnot/plugin-coto-grafana-mongodb"
@@ -34,7 +33,7 @@ fi
 echo 'Efetuando o build do plugin...'
 
 docker build -t $CONTAINER_REPO/$IMAGE_NAME:latest \
-			 -t $CONTAINER_REPO/$IMAGE_NAME:$VERSION . --network=host
+			       -t $CONTAINER_REPO/$IMAGE_NAME:$VERSION . --network=host
 
 if [ "$ENV" = "prod" ]
 then

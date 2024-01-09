@@ -4,7 +4,6 @@ services:
   mongodb:
     image: mongo:latest
     container_name: mongo-test
-    network_mode: host
     ports:
       - "27017:27017"
     environment:
@@ -18,7 +17,6 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    network_mode: host
     ports:
       - "3000:3000"
     environment:
@@ -27,6 +25,12 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana-storage:/var/lib/grafana
+
+  plugin-coto:
+    image: ghcr.io/brunnot/plugin-coto-grafana-mongodb/plugin-coto-rest-mongodb:latest
+    container_name: plugin-coto
+    ports:
+      - "3001:3001"
 
 volumes:
   grafana-storage:

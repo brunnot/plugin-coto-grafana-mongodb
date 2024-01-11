@@ -21,12 +21,8 @@ app.post('/query', async (req, res) => {
       console.debug( req.body );
     }
     
-    const { type, query } = req.body;
+    const { type, query, sort, limit, projection } = req.body;
 
-    if( !query ) {
-      throw new Error( 'A consulta não pode ser vazia.' );
-    }
-    
     if( debug ) {
       console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] - TYPE: " + type );
       console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] - QUERY: " );
@@ -34,7 +30,7 @@ app.post('/query', async (req, res) => {
     }
 
     const collectionRef = await dao.connectMongo( req, debug );
-    const result = await dao.executeQuery( collectionRef, type, query, debug );
+    const result = await dao.executeQuery( collectionRef, type, query, sort, limit, projection, debug );
     
     res.status(200).json({ result });
     
@@ -43,7 +39,6 @@ app.post('/query', async (req, res) => {
     res.status(500).json({ "error": error.message });
   }
 });
-
 
 // Inicialização do servidor
 app.listen(port, () => {

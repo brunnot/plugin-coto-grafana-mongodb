@@ -47,11 +47,19 @@ async function connectMongo( req, debug ) {
   return collectionRef;
 }
 
-async function executeQuery( collectionRef, type, query, debug ) {
+async function executeQuery( collectionRef, type, query, sort, limit, projection, debug ) {
   let result;
 
   if (!debug) {
     debug = false;
+  }
+
+  if( !query ) {
+    throw new Error( 'A consulta não pode ser vazia.' );
+  }
+
+  if( !type ) {
+    throw new Error( 'O tipo de consulta não pode ser vazio, deve ser (find ou aggregate).' );
   }
 
   if( type === 'aggregate' ) {
@@ -64,19 +72,55 @@ async function executeQuery( collectionRef, type, query, debug ) {
       console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] AGREGAÇÃO EXECUTADA" );
     }
   } else if ( type === 'find' ) {
-    if( debug ) {
-      console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA EM EXECUÇÃO" );
-    }
 
-    const parse = JSON.parse(query, customReviver.reviver);
-    result = await collectionRef.find( parse ).toArray();
-
-    if( debug ) {
-      console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA EXECUTADA" );
-    }
-
+    result = await _find( collectionRef, query, sort, limit, projection, debug );
+    
   } else {
     throw new Error( 'Tipo de consulta não existente.' );
+  }
+
+  return result;
+}
+
+async function _find( collectionRef, query, sort, limit, projection, debug ) {
+
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA EM EXECUÇÃO" );
+  }
+
+  if( !query ) {
+    throw new Error( 'A consulta não pode ser vazia.' );
+  }
+
+  // Converte a query em objeto válido para o MongoDB
+  const queryParsed = JSON.parse(query, customReviver.reviver);
+  
+  let options = {};
+
+  if( sort ) {
+    options.sort = JSON.parse( sort );
+  }
+
+  if( limit ) {
+    options.limit = limit;
+  }
+
+  if( projection ) {
+    options.projection = JSON.parse( projection );
+  }
+  
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA PROCESSADA " );
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] QUERY: " );
+    console.debug( queryParsed );
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] OPTIONS: " );
+    console.debug( options );
+  }
+
+  result = await collectionRef.find( queryParsed, options ).toArray();
+
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA EXECUTADA" );
   }
 
   return result;

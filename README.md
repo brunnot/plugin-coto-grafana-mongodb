@@ -7,6 +7,8 @@
 
 [![GitHub release](https://img.shields.io/github/release/brunnot/plugin-coto-grafana-mongodb)](https://github.com/brunnot/plugin-coto-grafana-mongodb/releases/?include_prereleases&sort=semver "View GitHub releases")
 
+> EM DESENVOLVIMENTO...
+
 ## Projeto
 
 Serviço alternativo para conexão com o MongoDB, ele serve para rodar em paralelo ao MongoDB, onde vai executar consultas via uma API intermediária.
@@ -36,21 +38,21 @@ No momento a API não contém autenticação própria, usamos ela para autentica
 
 Para isso basta colocar o usuário e senha do MongoDB, em BasicAuth ao conectar na API.
 
-## Requests
+## Requisição Básica
 
-```
-{
+```bash
+curl --location 'localhost:3001/query' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Basic XXXXXXX' \
+--data '{
     "db": {
         "host": "localhost",
         "collection": "products",
         "database": "test-grafana"
     },
     "type": "find",
-    "query": "{\"qty\": { \"$gte\": 30 }}",
-    "sort": {},
-    "skip": 0,
-    "limit": 10
-}
+    "query": "{\"qty\": { \"$gte\": 30 }}"
+}'
 ```
 
 ### Parametros Obrigatórios
@@ -64,46 +66,71 @@ Para isso basta colocar o usuário e senha do MongoDB, em BasicAuth ao conectar 
 | type | Sim | Tipo de consulta. Opções: **aggregation** ou **find** |
 | query | Sim | Consulta que deve ser executada no MongoDB, deve estar entre aspas |
 
-### Exemplo
+### Opção: _FIND_
 
-Necessário efetuar uma requisição POST, onde o corpo vai conter os dados de conexão do MongoDB.
+A opção _find_ reflete o find do MongoDB, está suportando as principais funções.
+É possível combinar os campos
 
-### Tipo: _aggregate_
+| Atributo | Obrigatório | Descrição |
+| -------- | ----------- | --------- |
+| sort | Não | Permite ordenar o resultado da consulta com um ou mais campos |
+| limit | Não | Aplica um limit na consulta, só retornando a quantidade de registros será baseado no número passado |
+| projection | Não | Permite definir quais campos retornam ou não do documento consultado |
 
-```bash
-curl --location 'localhost:3001/query' \
---header 'Content-Type: application/json' \
---header 'Authorization: Basic dGVzdDp0ZXN0' \
---data '{
-    "db": {
-        "host": "localhost",
-        "collection": "products",
-        "database": "test-grafana"
-    },
-    "type": "aggregate",
-    "query": "[{\"$group\": { \"_id\": 1, \"teste\": { \"$sum\": \"$qty\" }} }]"
-}'
+_Exemplo 1_
+
+Ordena o resultado da consulta pelo campo _qty_ de forma decrescente
+
+```
+{
+  "db": {
+      "host": "localhost",
+      "collection": "products",
+      "database": "test-grafana"
+  },
+  "type": "find",
+  "query": "{\"qty\": { \"$gte\": 30 }}",
+  "sort": "{\"qty\": -1}"
+}
 ```
 
-### Tipo: _find_
+_Exemplo 2_
 
-```bash
-curl --location 'localhost:3001/query' \
---header 'Content-Type: application/json' \
---header 'Authorization: Basic dGVzdDp0ZXN0' \
---data '{
-    "db": {
-        "host": "localhost",
-        "collection": "products",
-        "database": "test-grafana"
-    },
-    "type": "find",
-    "query": "{\"qty\": { \"$gte\": 30 }}",
-    "sort": {},
-    "skip": 0,
-    "limit": 10
-}'
+Executa a query e traz somente o primeiro registro da consulta
+
 ```
+{
+  "db": {
+      "host": "localhost",
+      "collection": "products",
+      "database": "test-grafana"
+  },
+  "type": "find",
+  "query": "{\"qty\": { \"$gte\": 30 }}",
+  "limit": 1
+}
+```
+
+_Exemplo 3_
+
+Executa a query e traz somente o campo _qty_ no resultado, ignora o __id_
+
+```
+{
+  "db": {
+      "host": "localhost",
+      "collection": "products",
+      "database": "test-grafana"
+  },
+  "type": "find",
+  "query": "{\"qty\": { \"$gte\": 30 }}",
+  "projection": "{\"qty\": 1, \"_id\": 0}"
+}
+```
+
+### Opção: _AGGREGATE_
+
+Ainda em desenvolvimento...
 
 
 ## DESENVOLVEDOR

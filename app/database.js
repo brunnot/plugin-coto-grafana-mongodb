@@ -47,7 +47,7 @@ async function connectMongo( req, debug ) {
   return collectionRef;
 }
 
-async function executeQuery( collectionRef, type, query, sort, limit, projection, debug ) {
+async function executeFind( collectionRef, query, sort, limit, project, debug ){
   let result;
 
   if (!debug) {
@@ -58,31 +58,44 @@ async function executeQuery( collectionRef, type, query, sort, limit, projection
     throw new Error( 'A consulta não pode ser vazia.' );
   }
 
-  if( !type ) {
-    throw new Error( 'O tipo de consulta não pode ser vazio, deve ser (find ou aggregate).' );
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] BUSCA EM EXECUÇÃO" );
   }
 
-  if( type === 'aggregate' ) {
-    if( debug ) {
-      console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] AGREGAÇÃO EM EXECUÇÃO" );
-    }
-    result = await collectionRef.aggregate( query ).toArray();
-    
-    if( debug ) {
-      console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] AGREGAÇÃO EXECUTADA" );
-    }
-  } else if ( type === 'find' ) {
+  result = await _find( collectionRef, query, sort, limit, project, debug );
+  
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] BUSCA EXECUTADA" );
+  }
+  
+  return result;
+}
 
-    result = await _find( collectionRef, query, sort, limit, projection, debug );
-    
-  } else {
-    throw new Error( 'Tipo de consulta não existente.' );
+async function executeAggregate( collectionRef, query, debug ){
+  let result;
+
+  if (!debug) {
+    debug = false;
+  }
+
+  if( !query ) {
+    throw new Error( 'A consulta não pode ser vazia.' );
+  }
+
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] AGREGAÇÃO EM EXECUÇÃO" );
+  }
+
+  result = await _aggregate( collectionRef, query, debug );
+  
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] AGREGAÇÃO EXECUTADA" );
   }
 
   return result;
 }
 
-async function _find( collectionRef, query, sort, limit, projection, debug ) {
+async function _find( collectionRef, query, sort, limit, project, debug ) {
 
   if( debug ) {
     console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA EM EXECUÇÃO" );
@@ -105,8 +118,8 @@ async function _find( collectionRef, query, sort, limit, projection, debug ) {
     options.limit = limit;
   }
 
-  if( projection ) {
-    options.projection = JSON.parse( projection );
+  if( project ) {
+    options.projection = JSON.parse( project );
   }
   
   if( debug ) {
@@ -119,6 +132,8 @@ async function _find( collectionRef, query, sort, limit, projection, debug ) {
 
   result = await collectionRef.find( queryParsed, options ).toArray();
 
+  console.debug( result );
+
   if( debug ) {
     console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA EXECUTADA" );
   }
@@ -126,4 +141,33 @@ async function _find( collectionRef, query, sort, limit, projection, debug ) {
   return result;
 }
 
-module.exports = { connectMongo, executeQuery };
+async function _aggregate( collectionRef, query, debug ) {
+
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA EM EXECUÇÃO" );
+  }
+
+  if( !query ) {
+    throw new Error( 'A consulta não pode ser vazia.' );
+  }
+
+  // Converte a query em objeto válido para o MongoDB
+  const queryParsed = JSON.parse(query, customReviver.reviver);
+  
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA PROCESSADA " );
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] QUERY: " );
+    console.debug( queryParsed );
+  }
+
+  result = await collectionRef.aggregate( queryParsed ).toArray();
+
+  if( debug ) {
+    console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] CONSULTA EXECUTADA" );
+  }
+
+  return result;
+
+}
+
+module.exports = { connectMongo, executeAggregate, executeFind };

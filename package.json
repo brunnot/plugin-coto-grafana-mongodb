@@ -1,6 +1,6 @@
 {
   "name": "rest-mongo-grafana",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Devido a falta de um plugin de Grafana, para conexão com o  MongoDB, decidi construir um REST que vai efetuar as consultas.",
   "main": "index.js",
   "scripts": {

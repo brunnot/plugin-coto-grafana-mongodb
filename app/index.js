@@ -11,6 +11,7 @@ app.use(bodyParser.json());
 app.post('/query', async (req, res) => {
   try {
     let debug = process.env.DEBUG || false;
+    let result = {};
 
     if (!req) {
       throw new TypeError('Objeto da requisição inválido.');
@@ -21,7 +22,7 @@ app.post('/query', async (req, res) => {
       console.debug( req.body );
     }
     
-    const { type, query, sort, limit, projection } = req.body;
+    const { type, query, sort, limit, project, lookup, group } = req.body;
 
     if( debug ) {
       console.debug( "[COTO-PLUGIN#"+ new Date().toISOString() + "] - TYPE: " + type );
@@ -30,8 +31,21 @@ app.post('/query', async (req, res) => {
     }
 
     const collectionRef = await dao.connectMongo( req, debug );
-    const result = await dao.executeQuery( collectionRef, type, query, sort, limit, projection, debug );
-    
+
+    if( !type ) {
+      throw new Error( 'O tipo de consulta não pode ser vazio, deve ser (find ou aggregate).' );
+    }
+
+    if( type === 'aggregate' ) {
+      result = await dao.executeAggregate( collectionRef, query, debug );
+
+    } else if ( type === 'find' ) {
+      result = await dao.executeFind( collectionRef, query, sort, limit, project, debug );
+      
+    } else {
+      throw new Error( 'Tipo de consulta não existente ou não suportado.' );
+    }
+
     res.status(200).json({ result });
     
   } catch (error) {

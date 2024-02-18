@@ -7,8 +7,6 @@
 
 [![GitHub release](https://img.shields.io/github/release/brunnot/plugin-coto-grafana-mongodb)](https://github.com/brunnot/plugin-coto-grafana-mongodb/releases/?include_prereleases&sort=semver "View GitHub releases")
 
-> EM DESENVOLVIMENTO...
-
 ## Projeto
 
 Serviço alternativo para conexão com o MongoDB, ele serve para rodar em paralelo ao MongoDB, onde vai executar consultas via uma API intermediária.
@@ -64,7 +62,7 @@ curl --location 'localhost:3001/query' \
 | db.database  | Sim | Nome do Database |
 | db.port  | Não | Porta de conexão com o MongoDB. _Padrão: 27017_ |
 | type | Sim | Tipo de consulta. Opções: **aggregation** ou **find** |
-| query | Sim | Consulta que deve ser executada no MongoDB, deve estar entre aspas |
+| query | Sim | Consulta que deve ser executada no MongoDB, equivalente ao $match o caso de uma agregação. Deve estar entre aspas. |
 
 ### Opção: _FIND_
 
@@ -75,7 +73,7 @@ A opção _find_ reflete o find do MongoDB, está suportando as principais funç
 | -------- | ----------- | --------- |
 | sort | Não | Permite ordenar o resultado da consulta com um ou mais campos |
 | limit | Não | Aplica um limit na consulta, só retornando a quantidade de registros será baseado no número passado |
-| projection | Não | Permite definir quais campos retornam ou não do documento consultado |
+| project | Não | Permite definir quais campos retornam ou não do documento consultado |
 
 _Exemplo 1_
 
@@ -118,20 +116,74 @@ Executa a query e traz somente o campo _qty_ no resultado, ignora o __id_
 ```
 {
   "db": {
-      "host": "localhost",
-      "collection": "products",
-      "database": "test-grafana"
+    "host": "localhost",
+    "collection": "products",
+    "database": "test-grafana"
   },
   "type": "find",
-  "query": "{\"qty\": { \"$gte\": 30 }}",
-  "projection": "{\"qty\": 1, \"_id\": 0}"
+  "query": "{\"qty\": { \"$gte\": 10 }}",
+  "project": "{\"qty\": 1, \"_id\": 0}"
+}
+```
+
+_Exemplo 4_
+
+Executa a consulta e traz somente o campo _qyt_ no resultado, além disso traz somente os dados no periodo 
+maior ou igual _( $gte )_ a 09/01/2024
+
+```
+{
+    "db": {
+        "host": "localhost",
+        "collection": "products",
+        "database": "test-grafana"
+    },
+    "type": "find",
+    "query": "{\"createdAt\":{\"$gte\": \"ISODate('2024-01-01T00:31:38.705Z')\"}}",
+    "sort": "{\"createdAt\": 1}",
+    "limit": 2,
+    "project": "{\"qty\": 1, \"_id\": 0}"
 }
 ```
 
 ### Opção: _AGGREGATE_
 
-Ainda em desenvolvimento...
+A opção _aggregate_ busca executar um pipeline, a ordem de execução e cada comando pode afetar o resultado.
+As operações que são suportadas, seguem as mesmas oficiais do MongoDB.
 
+_Referência: https://www.mongodb.com/docs/manual/core/aggregation-pipeline/_
+
+_Exemplo 1_
+
+Filtra somente os produtos que tenham mais do que 10 de quantidade e depois soma o total de produtos dos registros restantes.
+
+```
+{
+    "db": {
+        "host": "localhost",
+        "collection": "products",
+        "database": "test-grafana"
+    },
+    "type": "aggregate",
+    "query": "[ {\"$match\": { \"qty\": {\"$gt\": 10} }}, {\"$group\": { \"_id\": \"totalProdutos\",\"qty\": { \"$sum\": \"$qty\" } }}]"
+}
+```
+
+_Exemplo 2_
+
+Filtra somente os produtos criados depois de 2024-01-01, depois soma o total de produtos dos registros restantes.
+
+```
+{
+    "db": {
+        "host": "localhost",
+        "collection": "products",
+        "database": "test-grafana"
+    },
+    "type": "aggregate",
+    "query": "[ {\"$match\": {\"createdAt\":{\"$gte\": \"ISODate('2024-01-01T00:31:38.705Z')\"}}}, {\"$group\": { \"_id\": \"totalProdutos\",\"qty\": { \"$sum\": \"$qty\" } }}]"
+}
+```
 
 ## DESENVOLVEDOR
 
@@ -139,10 +191,15 @@ O projeto é bem simples, para execução em sua máquina basta executar
 
 Configurar o projeto `npm i`
 
-Iniciar o projeto `node app/index.js`
+Iniciar o projeto `npm run start-dev`
 
 Para auxiliar, no projeto existe um `docker-compose` que pode ser usado para subir o projeto sem a necessidade de complilar código.
 
+### DEBUG
+
+Para habilitar o DEBUG, setar como variável de ambiente.
+
+`export DEBUG=true`
 
 ## BUILD
 

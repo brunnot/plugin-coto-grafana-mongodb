@@ -2,6 +2,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const dao = require('./database');
 
+// Configuração de debug
+const DEBUG = process.env.DEBUG === 'true';
+const DEBUG_RESULTS = process.env.DEBUG_RESULTS === 'true';
+
+if (DEBUG) {
+  console.log('[COTO-PLUGIN] Modo de debug ativado');
+  if (DEBUG_RESULTS) console.log('[COTO-PLUGIN] Debug de resultados ativado');
+}
+
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -61,5 +70,6 @@ app.listen(port, () => {
   console.log("Version: " + process.env.npm_package_version);
   console.log("Running port: " + port);
   console.log("Debug enable: " + (process.env.DEBUG || false));
+  console.log("Debug results enable: " + (process.env.DEBUG_RESULTS || false));
   console.log("==============================================");
 });

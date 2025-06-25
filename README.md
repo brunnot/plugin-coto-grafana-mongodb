@@ -201,9 +201,29 @@ Para habilitar o DEBUG, setar como variável de ambiente.
 
 `export DEBUG=true`
 
+O plugin oferece níveis adicionais de debug:
+
+```bash
+# Debug básico
+export DEBUG=true
+
+# Debug completo de queries (mostra a estrutura completa)
+export DEBUG_FULL=true
+
+# Debug de resultados (mostra os resultados no console)
+export DEBUG_RESULTS=true
+
+# Execução com todos os níveis de debug
+DEBUG=true DEBUG_FULL=true DEBUG_RESULTS=true npm start
+```
+
 ## BUILD
 
 O projeto já está pronto para geração de uma imagem Docker, basta estar logado no GitHub com permissão de salvar uma nova imagem.
+
+**GitHub Container Registry Login**
+
+docker login ghcr.io -u <USER>
 
 Após estar logado executa `./buid.sh`. 
 Será apresentada duas opções

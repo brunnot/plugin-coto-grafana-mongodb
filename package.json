@@ -1,12 +1,14 @@
 {
   "name": "rest-mongo-grafana",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Devido a falta de um plugin de Grafana, para conexão com o  MongoDB, decidi construir um REST que vai efetuar as consultas.",
   "main": "index.js",
   "scripts": {
     "start": "node app/index.js",
-    "start-dev": "DEBUG=true node app/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start-dev": "DEBUG=true DEBUG_FULL=true DEBUG_RESULTS=true node app/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-debug": "DEBUG=true NODE_DEBUG=mongodb node app/index.js",
+    "diagnose-conn": "node scripts/test-mongo-connection.js"
   },
   "jest": {
     "verbose": true
@@ -16,9 +18,10 @@
   "license": "ISC",
   "dependencies": {
     "basic-auth": "^2.0.1",
-    "body-parse": "^0.1.0",
+    "body-parser": "^1.20.2",
     "express": "^4.18.2",
     "mongodb": "^6.3.0",
-    "mongoose": "^8.0.3"
+    "mongoose": "^8.0.3",
+    "winston": "^3.10.0"
   }
 }
